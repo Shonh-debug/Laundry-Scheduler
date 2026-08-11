@@ -152,6 +152,9 @@ export function CalendarView({
             );
           }
 
+          // Get other users' bookings for this day
+          const otherBookings = slots.filter((s) => s.bookedBy && s.bookedBy.id !== activeRoommate.id);
+
           // Standard Day Card (Light gray background with green/full pill)
           return (
             <motion.button
@@ -161,7 +164,18 @@ export function CalendarView({
               onClick={() => onSelectDay(dateStr)}
               className="min-h-[95px] sm:min-h-[105px] p-3 rounded-2xl bg-slate-50/90 border border-slate-100 hover:border-slate-300 hover:bg-slate-100/70 flex flex-col justify-between items-start text-left cursor-pointer transition-all"
             >
-              <span className="font-bold text-sm text-slate-900">{dayNumber}</span>
+              <div className="flex items-start justify-between w-full">
+                <span className="font-bold text-sm text-slate-900">{dayNumber}</span>
+                {otherBookings.length > 0 && (
+                  <div className="flex -space-x-1.5 mt-0.5">
+                    {otherBookings.map((b, i) => (
+                      <span key={i} className="text-[10px] sm:text-[11px] w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center rounded-full bg-white border border-slate-200 shadow-sm" title={b.bookedBy?.name}>
+                        {b.bookedBy?.avatar}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               <div className="w-full mt-2">
                 {isFull ? (
