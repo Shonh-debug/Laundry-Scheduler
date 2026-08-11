@@ -164,7 +164,7 @@ export default function Home() {
           Pick a wash day
         </h2>
         <p className="text-sm sm:text-base font-semibold text-slate-500">
-          Choose an available time slot, don't be a nonce and pick more than 3 slots a week.
+          Choose an available time slot, pick up to 10 slots a month.
         </p>
       </div>
 
