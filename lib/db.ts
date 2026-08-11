@@ -1,10 +1,12 @@
-import fs from 'fs/promises';
-import path from 'path';
 import { Roommate, TimeSlot } from './types';
 import { generateInitialSchedule } from './data';
+import { Redis } from '@upstash/redis';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
-const DB_FILE = path.join(DATA_DIR, 'db.json');
+// Initialize Redis from Environment Variables
+// Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
+const redis = Redis.fromEnv();
+
+const DB_KEY = 'laundry_db_v1';
 
 export interface DatabaseSchema {
   users: Roommate[]; // Using Roommate type for users
@@ -17,37 +19,30 @@ const initialState: DatabaseSchema = {
   slotsMap: generateInitialSchedule(),
 };
 
-async function ensureDbExists() {
-  try {
-    await fs.access(DATA_DIR);
-  } catch {
-    await fs.mkdir(DATA_DIR, { recursive: true });
-  }
-
-  try {
-    await fs.access(DB_FILE);
-  } catch {
-    await fs.writeFile(DB_FILE, JSON.stringify(initialState, null, 2), 'utf-8');
-  }
-}
-
-let dbCache: DatabaseSchema | null = null;
-
 export async function readDb(): Promise<DatabaseSchema> {
-  if (dbCache) return dbCache;
-  await ensureDbExists();
-  const data = await fs.readFile(DB_FILE, 'utf-8');
   try {
-    dbCache = JSON.parse(data) as DatabaseSchema;
-    return dbCache;
+    const data = await redis.get<DatabaseSchema>(DB_KEY);
+    
+    if (data) {
+      return data;
+    } else {
+      // If no data exists in Redis, initialize it with the default state
+      await writeDb(initialState);
+      return initialState;
+    }
   } catch (error) {
-    console.error("Error reading db.json, returning initial state", error);
+    console.error("Error reading from Upstash Redis, returning initial state", error);
     return initialState;
   }
 }
 
 export async function writeDb(data: DatabaseSchema): Promise<void> {
-  await ensureDbExists();
-  dbCache = data;
-  await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  try {
+    // Store the entire schema object under one key. 
+    // You could split this into separate keys if it gets too large.
+    await redis.set(DB_KEY, data);
+  } catch (error) {
+    console.error("Error writing to Upstash Redis", error);
+    throw new Error("Failed to save to database");
+  }
 }
