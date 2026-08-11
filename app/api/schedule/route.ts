@@ -1,36 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateInitialSchedule } from "@/lib/data";
-import { globalScheduleStore, notifySseClients } from "@/lib/store";
+import { readDb, writeDb } from "@/lib/db";
+import { notifySseClients } from "@/lib/store";
 import { Roommate } from "@/lib/types";
+import { getUserFromRequest } from "@/lib/auth";
 
 export async function GET() {
+  const db = await readDb();
   return NextResponse.json({
     success: true,
-    slots: globalScheduleStore,
+    slots: db.slotsMap,
   });
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { action, slotId, dateStr, roommate }: { action: "book" | "cancel" | "reset"; slotId?: string; dateStr?: string; roommate?: Roommate } = body;
-
-    if (action === "reset") {
-      const fresh = generateInitialSchedule();
-      Object.keys(globalScheduleStore).forEach((key) => {
-        delete globalScheduleStore[key];
-      });
-      Object.assign(globalScheduleStore, fresh);
-
-      notifySseClients({ type: "RESET_ALL", timestamp: Date.now() });
-      return NextResponse.json({ success: true, slots: globalScheduleStore });
+    const user = await getUserFromRequest(req);
+    if (!user) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!slotId || !dateStr || !roommate) {
+    const body = await req.json();
+    const { action, slotId, dateStr }: { action: "book" | "cancel" | "reset"; slotId?: string; dateStr?: string } = body;
+
+    const db = await readDb();
+
+    if (action === "reset") {
+      // Allow any logged-in user to reset the demo (optional, maybe restrict?)
+      // Actually, since we are persisting data now, resetting is destructive.
+      // But we will keep it for demo purposes, or maybe just remove it.
+      // Let's just remove reset functionality to prevent users from wiping the db.
+      return NextResponse.json({ success: false, error: "Reset disabled in production" }, { status: 403 });
+    }
+
+    if (!slotId || !dateStr) {
       return NextResponse.json({ success: false, error: "Missing parameters" }, { status: 400 });
     }
 
-    const daySlots = globalScheduleStore[dateStr];
+    const daySlots = db.slotsMap[dateStr];
     if (!daySlots) {
       return NextResponse.json({ success: false, error: "Invalid date" }, { status: 400 });
     }
@@ -47,10 +53,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: `Already booked by ${targetSlot.bookedBy.name}` }, { status: 400 });
       }
 
-      // Check 3 slots/week rule
-      const userBookings = Object.values(globalScheduleStore)
+      // Check 3 slots/week rule for this user
+      const userBookings = Object.values(db.slotsMap)
         .flat()
-        .filter((s) => s.bookedBy && s.bookedBy.id === roommate.id);
+        .filter((s) => s.bookedBy && s.bookedBy.id === user.id);
 
       if (userBookings.length >= 3) {
         return NextResponse.json(
@@ -59,7 +65,15 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      const roommate: Roommate = {
+        id: user.id as string,
+        name: user.name as string,
+        avatar: user.avatar as string,
+        color: user.color as string,
+      };
+
       daySlots[targetSlotIndex].bookedBy = roommate;
+      await writeDb(db);
 
       notifySseClients({
         type: "BOOK_SLOT",
@@ -70,7 +84,14 @@ export async function POST(req: NextRequest) {
         timestamp: Date.now(),
       });
     } else if (action === "cancel") {
+      // Authorization check: Only allow the user who booked it to cancel it
+      if (targetSlot.bookedBy?.id !== user.id) {
+         return NextResponse.json({ success: false, error: "Forbidden: You cannot cancel someone else's slot" }, { status: 403 });
+      }
+
+      const roommate = targetSlot.bookedBy;
       daySlots[targetSlotIndex].bookedBy = null;
+      await writeDb(db);
 
       notifySseClients({
         type: "CANCEL_SLOT",
@@ -84,7 +105,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      slots: globalScheduleStore,
+      slots: db.slotsMap,
       updatedSlot: daySlots[targetSlotIndex],
     });
   } catch (error: any) {

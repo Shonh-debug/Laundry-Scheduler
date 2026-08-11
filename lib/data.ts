@@ -9,14 +9,18 @@ export const ROOMMATES: Roommate[] = [
 ];
 
 export const STANDARD_TIME_SLOTS = [
+  { startTime: "00:00", endTime: "02:00", label: "12:00 AM – 2:00 AM" },
+  { startTime: "02:00", endTime: "04:00", label: "2:00 AM – 4:00 AM" },
+  { startTime: "04:00", endTime: "06:00", label: "4:00 AM – 6:00 AM" },
   { startTime: "06:00", endTime: "08:00", label: "6:00 AM – 8:00 AM" },
   { startTime: "08:00", endTime: "10:00", label: "8:00 AM – 10:00 AM" },
   { startTime: "10:00", endTime: "12:00", label: "10:00 AM – 12:00 PM" },
   { startTime: "12:00", endTime: "14:00", label: "12:00 PM – 2:00 PM" },
   { startTime: "14:00", endTime: "16:00", label: "2:00 PM – 4:00 PM" },
   { startTime: "16:00", endTime: "18:00", label: "4:00 PM – 6:00 PM" },
-  { startTime: "18:30", endTime: "20:00", label: "6:30 PM – 8:00 PM" },
+  { startTime: "18:00", endTime: "20:00", label: "6:00 PM – 8:00 PM" },
   { startTime: "20:00", endTime: "22:00", label: "8:00 PM – 10:00 PM" },
+  { startTime: "22:00", endTime: "00:00", label: "10:00 PM – 12:00 AM" },
 ];
 
 // Helper to format date string YYYY-MM-DD
@@ -41,42 +45,6 @@ export function generateInitialSchedule() {
       bookedBy: null,
       durationText: "45 minute wash + 1 hour dry",
     }));
-
-    // Pre-populate some slots matching the user mockup
-    if (day === 7) {
-      // Friday Aug 7: Shon booked 6:30 PM - 8:00 PM
-      daySlots[6].bookedBy = ROOMMATES[0]; // Shon
-      // Others booked some slots
-      daySlots[1].bookedBy = ROOMMATES[1]; // Alex
-      daySlots[3].bookedBy = ROOMMATES[2]; // Sam
-    } else if (day === 5 || day === 13 || day === 20 || day === 27) {
-      // Full days (all slots booked)
-      daySlots.forEach((slot, i) => {
-        slot.bookedBy = ROOMMATES[i % ROOMMATES.length];
-      });
-    } else if (day === 6 || day === 11 || day === 18 || day === 23 || day === 30) {
-      // 1 slot available (7 booked)
-      daySlots.forEach((slot, i) => {
-        if (i !== 4) slot.bookedBy = ROOMMATES[i % ROOMMATES.length];
-      });
-    } else if (day === 9 || day === 14 || day === 15 || day === 16 || day === 21 || day === 25 || day === 28) {
-      // 2 slots available
-      daySlots.forEach((slot, i) => {
-        if (i !== 2 && i !== 5) slot.bookedBy = ROOMMATES[i % ROOMMATES.length];
-      });
-    } else if (day === 4 || day === 12 || day === 17 || day === 19 || day === 22 || day === 24 || day === 26 || day === 31) {
-      // 4 or 3 slots available
-      const availableIndices = day % 2 === 0 ? [0, 2, 4, 6] : [1, 3, 5];
-      daySlots.forEach((slot, i) => {
-        if (!availableIndices.includes(i)) slot.bookedBy = ROOMMATES[i % ROOMMATES.length];
-      });
-    } else {
-      // 3 or 5 slots available default
-      const availableIndices = [1, 3, 5, 7];
-      daySlots.forEach((slot, i) => {
-        if (!availableIndices.includes(i)) slot.bookedBy = ROOMMATES[i % ROOMMATES.length];
-      });
-    }
 
     slotsMap[dateStr] = daySlots;
   }

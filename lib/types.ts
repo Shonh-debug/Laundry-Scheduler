@@ -3,6 +3,7 @@ export interface Roommate {
   name: string;
   avatar: string;
   color: string;
+  password?: string;
 }
 
 export interface TimeSlot {
