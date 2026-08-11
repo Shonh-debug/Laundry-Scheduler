@@ -19,7 +19,7 @@ export async function signJwtToken(payload: any) {
   const token = await new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime('30d') // 30 days expiration
+    .setExpirationTime('12h') // 12 hours expiration
     .sign(getJwtSecretKey());
   return token;
 }
