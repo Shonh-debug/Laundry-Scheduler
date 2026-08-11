@@ -6,7 +6,7 @@ import { Redis } from '@upstash/redis';
 // Requires UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
 const redis = Redis.fromEnv();
 
-const DB_KEY = 'laundry_db_v1';
+const DB_KEY = 'laundry_db_v2';
 
 export interface DatabaseSchema {
   users: Roommate[]; // Using Roommate type for users
