@@ -71,9 +71,9 @@ export function SlotModal({
     const isCancelling = targetSlot?.bookedBy?.id === activeRoommate.id && selectedSlotId === targetSlotId;
     const action = isCancelling ? "cancel" : "book";
 
-    // Enforce 3 slots/week rule if booking a new slot
-    if (action === "book" && userWeeklyBookingCount >= 3 && !existingUserSlot) {
-      setErrorMsg("Weekly limit reached! Don't be a nonce and pick more than 3 slots a week.");
+    // Enforce 10 slots/month rule if booking a new slot
+    if (!existingUserSlot && userWeeklyBookingCount >= 10 && action === "book") {
+      setErrorMsg("Monthly limit reached! You can only pick up to 10 slots a month.");
       setIsSubmitting(false);
       return;
     }
@@ -128,7 +128,7 @@ export function SlotModal({
                   Select Wash Slot
                 </span>
                 <span className="text-xs font-semibold text-slate-500">
-                  Roommate: <strong className="text-slate-800">{activeRoommate.name}</strong> ({userWeeklyBookingCount}/3 slots)
+                  Roommate: <strong className="text-slate-800">{activeRoommate.name}</strong> ({userWeeklyBookingCount}/10 slots)
                 </span>
               </div>
               <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">{formattedDate}</h3>
@@ -225,9 +225,9 @@ export function SlotModal({
           {/* Modal Footer with Blue Confirm Button */}
           <div className="px-6 py-4 sm:px-8 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="text-xs text-slate-500 font-medium text-center sm:text-left">
-              {userWeeklyBookingCount >= 3 && !existingUserSlot ? (
+              {userWeeklyBookingCount >= 10 && !existingUserSlot ? (
                 <span className="text-amber-700 font-bold flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4 text-amber-600" /> Max 3 slots per week limit reached
+                  <AlertCircle className="w-4 h-4 text-amber-600" /> Max 10 slots per month limit reached
                 </span>
               ) : (
                 <span>Each slot reserves machine for 45 min wash + 1 hr dry</span>

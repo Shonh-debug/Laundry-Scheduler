@@ -74,14 +74,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: `Already booked by ${targetSlot.bookedBy.name}` }, { status: 400 });
       }
 
-      // Check 3 slots/week rule for this user
+      // Check 10 slots/month rule for this user
       const userBookings = Object.values(db.slotsMap)
         .flat()
         .filter((s) => s.bookedBy && s.bookedBy.id === user.id);
 
-      if (userBookings.length >= 3) {
+      if (userBookings.length >= 10) {
         return NextResponse.json(
-          { success: false, error: "Weekly limit reached! Don't be a nonce and pick more than 3 slots a week." },
+          { success: false, error: "Monthly limit reached! You can only pick up to 10 slots a month." },
           { status: 400 }
         );
       }

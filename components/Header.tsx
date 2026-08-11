@@ -41,7 +41,7 @@ export function Header({ activeRoommate, bookingCount }: HeaderProps) {
             <span className="text-base">{activeRoommate.avatar}</span>
             <span>Hi, <span className="text-blue-600">{activeRoommate.name}</span></span>
             <span className="text-[11px] font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full">
-              {bookingCount}/3 slots
+              {bookingCount}/10 slots
             </span>
           </div>
           

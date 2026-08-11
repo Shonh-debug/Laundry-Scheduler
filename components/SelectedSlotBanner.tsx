@@ -28,7 +28,7 @@ export function SelectedSlotBanner({ userBookings, activeRoommate, onOpenModal }
               NO SLOT SELECTED
             </span>
             <p className="text-base font-bold text-amber-950">Select a wash day above to reserve your time slot</p>
-            <p className="text-xs text-amber-800 font-medium">Don't be a nonce and pick more than 3 slots a week.</p>
+            <p className="text-xs text-amber-800 font-medium">Choose an available time slot, pick up to 10 slots a month.</p>
           </div>
         </div>
 
