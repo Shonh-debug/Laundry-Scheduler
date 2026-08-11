@@ -12,10 +12,7 @@ interface SelectedSlotBannerProps {
 }
 
 export function SelectedSlotBanner({ userBookings, activeRoommate, onOpenModal }: SelectedSlotBannerProps) {
-  // If user has a booking, show the earliest one (e.g. Friday Aug 7 6:30-8:00 PM as shown in mockup)
-  const currentBooking = userBookings.length > 0 ? userBookings[0] : null;
-
-  if (!currentBooking) {
+  if (userBookings.length === 0) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -36,7 +33,11 @@ export function SelectedSlotBanner({ userBookings, activeRoommate, onOpenModal }
         </div>
 
         <button
-          onClick={() => onOpenModal("2026-08-07")}
+          onClick={() => {
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getDate().toString().padStart(2, '0')}`;
+            onOpenModal(dateStr);
+          }}
           className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
         >
           <span>Select slot</span>
@@ -46,39 +47,47 @@ export function SelectedSlotBanner({ userBookings, activeRoommate, onOpenModal }
     );
   }
 
-  // Format date string for banner (e.g. "Friday, August 7")
-  const dateObj = new Date(currentBooking.dateStr + "T00:00:00");
-  const formattedDay = dateObj.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="mt-6 p-6 sm:p-7 rounded-2xl bg-[#FEF9C3] border border-[#FEF08A] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm"
-    >
-      <div className="space-y-1">
-        <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-900/70 block">
-          SELECTED SLOT
-        </span>
-        <h3 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight flex items-center gap-2">
-          {formattedDay} · {currentBooking.timeLabel}
-        </h3>
-        <p className="text-xs sm:text-sm font-semibold text-amber-900/80 flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-600" />
-          {currentBooking.durationText}
-        </p>
-      </div>
+    <div className="space-y-4 mt-6">
+      {userBookings.map((booking, idx) => {
+        // Format date string for banner (e.g. "Friday, August 7")
+        const dateObj = new Date(booking.dateStr + "T00:00:00");
+        const formattedDay = dateObj.toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        });
 
-      <button
-        onClick={() => onOpenModal(currentBooking.dateStr)}
-        className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
-      >
-        <span>Edit slot</span>
-      </button>
-    </motion.div>
+        return (
+          <motion.div
+            key={booking.id}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: idx * 0.1 }}
+            className="p-6 sm:p-7 rounded-2xl bg-[#FEF9C3] border border-[#FEF08A] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm"
+          >
+            <div className="space-y-1">
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-900/70 block">
+                SELECTED SLOT {idx + 1}
+              </span>
+              <h3 className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight flex items-center gap-2">
+                {formattedDay} · {booking.timeLabel}
+              </h3>
+              <p className="text-xs sm:text-sm font-semibold text-amber-900/80 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-600" />
+                {booking.durationText}
+              </p>
+            </div>
+
+            <button
+              onClick={() => onOpenModal(booking.dateStr)}
+              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+            >
+              <span>Edit slot</span>
+            </button>
+          </motion.div>
+        );
+      })}
+    </div>
   );
 }
