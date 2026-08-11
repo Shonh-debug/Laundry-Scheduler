@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, LogOut } from "lucide-react";
+import { WashingMachine, LogOut } from "lucide-react";
 import { Roommate } from "@/lib/types";
 
 interface HeaderProps {
@@ -24,15 +24,11 @@ export function Header({ activeRoommate, bookingCount }: HeaderProps) {
       {/* Brand Logo & Name */}
       <div className="flex items-center gap-3.5">
         <div className="w-11 h-11 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-          <Sparkles className="w-6 h-6" />
+          <WashingMachine className="w-6 h-6" />
         </div>
         <div>
           <h1 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             Big Shack Laundry Scheduling
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full border border-blue-200/60">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Live Sync
-            </span>
           </h1>
           <p className="text-xs font-medium text-slate-500">Built by Shon Hoang</p>
         </div>

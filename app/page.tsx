@@ -16,7 +16,7 @@ export default function Home() {
   const [slotsMap, setSlotsMap] = useState<Record<string, TimeSlot[]>>({});
   const [selectedModalDate, setSelectedModalDate] = useState<string | null>(null);
   const [toastEvent, setToastEvent] = useState<RealtimeEvent | null>(null);
-  const [currentMonthName, setCurrentMonthName] = useState("August 2026");
+  const [currentDate, setCurrentDate] = useState(new Date(2026, 7, 1)); // August 2026
 
   const fetchSession = useCallback(async () => {
     try {
@@ -36,15 +36,17 @@ export default function Home() {
 
   const fetchSchedule = useCallback(async () => {
     try {
-      const res = await fetch("/api/schedule");
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      const res = await fetch(`/api/schedule?year=${year}&month=${month}`);
       const data = await res.json();
       if (data.success && data.slots) {
-        setSlotsMap(data.slots);
+        setSlotsMap((prev) => ({ ...prev, ...data.slots }));
       }
     } catch (err) {
       console.error("Failed to fetch schedule", err);
     }
-  }, []);
+  }, [currentDate]);
 
   useEffect(() => {
     fetchSession();
@@ -167,12 +169,17 @@ export default function Home() {
       </div>
 
       <CalendarView
-        currentMonthName={currentMonthName}
+        currentDate={currentDate}
         activeRoommate={activeRoommate}
         slotsMap={slotsMap}
         onSelectDay={(dateStr) => setSelectedModalDate(dateStr)}
-        onPrevMonth={() => setCurrentMonthName("July 2026")}
-        onNextMonth={() => setCurrentMonthName("September 2026")}
+        onPrevMonth={() => {
+          setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+        }}
+        onNextMonth={() => {
+          setCurrentDate((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+        }}
+        disablePrevMonth={currentDate.getFullYear() === 2026 && currentDate.getMonth() === 7}
       />
 
       <SelectedSlotBanner

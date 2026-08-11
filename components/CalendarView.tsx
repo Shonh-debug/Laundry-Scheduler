@@ -6,43 +6,47 @@ import { DayData, Roommate, TimeSlot } from "@/lib/types";
 import { motion } from "motion/react";
 
 interface CalendarViewProps {
-  currentMonthName: string;
+  currentDate: Date;
   activeRoommate: Roommate;
   slotsMap: Record<string, TimeSlot[]>;
   onSelectDay: (dateStr: string) => void;
   onPrevMonth: () => void;
   onNextMonth: () => void;
+  disablePrevMonth?: boolean;
 }
 
 export function CalendarView({
-  currentMonthName,
+  currentDate,
   activeRoommate,
   slotsMap,
   onSelectDay,
   onPrevMonth,
   onNextMonth,
+  disablePrevMonth = false,
 }: CalendarViewProps) {
   const daysOfWeek = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
-  // August 2026 calendar structure:
-  // Aug 1, 2026 is Saturday. So MON..FRI (5 days) before Aug 1 are padding days from July or empty.
-  // Aug 31 is Monday.
-  const augustDays: DayData[] = [];
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth(); // 0-indexed
 
-  // Generate 31 days of August 2026
-  for (let day = 1; day <= 31; day++) {
-    const m = "08";
+  // Format month name like "August 2026"
+  const currentMonthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthDays: DayData[] = [];
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const m = month + 1 < 10 ? `0${month + 1}` : `${month + 1}`;
     const d = day < 10 ? `0${day}` : `${day}`;
-    const dateStr = `2026-${m}-${d}`;
+    const dateStr = `${year}-${m}-${d}`;
     const slots = slotsMap[dateStr] || [];
 
-    // Day of week index (0=Mon, 6=Sun)
-    const dateObj = new Date(2026, 7, day); // Month is 0-indexed in JS (7 = Aug)
-    const jsDay = dateObj.getDay(); // 0 = Sun, 1 = Mon ...
-    const dayOfWeekIdx = (jsDay + 6) % 7; // Convert so Mon=0, Sun=6
+    const dateObj = new Date(year, month, day);
+    const jsDay = dateObj.getDay(); 
+    const dayOfWeekIdx = (jsDay + 6) % 7; 
     const dayOfWeek = daysOfWeek[dayOfWeekIdx] as any;
 
-    augustDays.push({
+    monthDays.push({
       dateStr,
       dayNumber: day,
       dayOfWeek,
@@ -51,8 +55,10 @@ export function CalendarView({
     });
   }
 
-  // Offset padding: Aug 1 2026 is Saturday (idx 5), so 5 empty slots before Aug 1
-  const firstDayIdx = 5; // Saturday
+  // Calculate padding based on the first day of the month
+  const firstDayObj = new Date(year, month, 1);
+  const firstJsDay = firstDayObj.getDay();
+  const firstDayIdx = (firstJsDay + 6) % 7; // Monday = 0
   const paddingBefore = Array.from({ length: firstDayIdx });
 
   return (
@@ -65,20 +71,19 @@ export function CalendarView({
           </div>
           <div className="flex items-center gap-3">
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">{currentMonthName}</h2>
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+            <div className="flex items-center gap-1 sm:gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
               <button
                 onClick={onPrevMonth}
-                className="p-1 text-slate-500 hover:text-slate-900 hover:bg-white rounded-lg transition-all"
-                title="Previous Month"
+                disabled={disablePrevMonth}
+                className="p-2 sm:p-2.5 rounded-xl hover:bg-white hover:shadow-sm text-slate-500 hover:text-slate-900 transition-all active:scale-95 disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:shadow-none disabled:active:scale-100 disabled:cursor-not-allowed"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
               <button
                 onClick={onNextMonth}
-                className="p-1 text-slate-500 hover:text-slate-900 hover:bg-white rounded-lg transition-all"
-                title="Next Month"
+                className="p-2 sm:p-2.5 rounded-xl hover:bg-white hover:shadow-sm text-slate-500 hover:text-slate-900 transition-all active:scale-95"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
           </div>
@@ -114,7 +119,7 @@ export function CalendarView({
         ))}
 
         {/* August Days */}
-        {augustDays.map((dayData) => {
+        {monthDays.map((dayData, idx) => {
           const { dateStr, dayNumber, slots } = dayData;
           
           // Check if active user has a booking on this day

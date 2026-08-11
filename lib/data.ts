@@ -30,13 +30,13 @@ export function formatDate(year: number, month: number, day: number): string {
   return `${year}-${m}-${d}`;
 }
 
-export function generateInitialSchedule() {
+export function generateMonthSlots(year: number, month: number): Record<string, TimeSlot[]> {
   const slotsMap: Record<string, TimeSlot[]> = {};
+  const daysInMonth = new Date(year, month, 0).getDate();
 
-  // For August 2026 (31 days)
-  for (let day = 1; day <= 31; day++) {
-    const dateStr = formatDate(2026, 8, day);
-    const daySlots: TimeSlot[] = STANDARD_TIME_SLOTS.map((t, idx) => ({
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = formatDate(year, month, day);
+    const daySlots: TimeSlot[] = STANDARD_TIME_SLOTS.map((t) => ({
       id: `${dateStr}_${t.startTime}`,
       dateStr,
       timeLabel: t.label,
@@ -45,9 +45,11 @@ export function generateInitialSchedule() {
       bookedBy: null,
       durationText: "45 minute wash + 1 hour dry",
     }));
-
     slotsMap[dateStr] = daySlots;
   }
-
   return slotsMap;
+}
+
+export function generateInitialSchedule() {
+  return generateMonthSlots(2026, 8);
 }

@@ -77,7 +77,7 @@ export function SelectedSlotBanner({ userBookings, activeRoommate, onOpenModal }
         onClick={() => onOpenModal(currentBooking.dateStr)}
         className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
       >
-        <span>Reserve slot</span>
+        <span>Edit slot</span>
       </button>
     </motion.div>
   );

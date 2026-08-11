@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Clock, Check, AlertCircle, ShieldAlert, Sparkles } from "lucide-react";
+import { X, Clock, Check, AlertCircle, ShieldAlert, WashingMachine } from "lucide-react";
 import { Roommate, TimeSlot } from "@/lib/types";
 import { motion, AnimatePresence } from "motion/react";
 import confetti from "canvas-confetti";
@@ -95,6 +95,10 @@ export function SlotModal({
       setErrorMsg("Failed to update slot booking. Please try again.");
     }
   };
+
+  const targetSlotIdForRender = selectedSlotId || (existingUserSlot ? existingUserSlot.id : "");
+  const targetSlotForRender = slots.find((s) => s.id === targetSlotIdForRender);
+  const isCancellingAction = targetSlotForRender?.bookedBy?.id === activeRoommate.id && selectedSlotId === targetSlotIdForRender;
 
   return (
     <AnimatePresence>
@@ -241,14 +245,18 @@ export function SlotModal({
               <button
                 disabled={isSubmitting || (!selectedSlotId && !existingUserSlot)}
                 onClick={handleConfirm}
-                className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm transition-all shadow-md shadow-blue-500/20 flex items-center gap-2 justify-center"
+                className={`px-6 py-2.5 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm transition-all shadow-md flex items-center gap-2 justify-center ${
+                  isCancellingAction
+                    ? "bg-rose-600 hover:bg-rose-700 active:bg-rose-800 shadow-rose-500/20"
+                    : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-blue-500/20"
+                }`}
               >
                 {isSubmitting ? (
                   <span>Saving...</span>
                 ) : (
                   <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>Confirm slot</span>
+                    <WashingMachine className="w-4 h-4" />
+                    <span>{isCancellingAction ? "Cancel slot" : "Confirm slot"}</span>
                   </>
                 )}
               </button>

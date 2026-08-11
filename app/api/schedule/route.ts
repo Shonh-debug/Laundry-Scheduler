@@ -4,8 +4,27 @@ import { notifySseClients } from "@/lib/store";
 import { Roommate } from "@/lib/types";
 import { getUserFromRequest } from "@/lib/auth";
 
-export async function GET() {
+import { generateMonthSlots } from "@/lib/data";
+
+export async function GET(req: NextRequest) {
   const db = await readDb();
+  const { searchParams } = new URL(req.url);
+  const yearParam = searchParams.get("year");
+  const monthParam = searchParams.get("month");
+
+  if (yearParam && monthParam) {
+    const year = parseInt(yearParam);
+    const month = parseInt(monthParam);
+    const testDate = `${year}-${month < 10 ? "0" + month : month}-01`;
+    
+    // If the month doesn't exist in our DB, generate it and save
+    if (!db.slotsMap[testDate]) {
+      const newMonthSlots = generateMonthSlots(year, month);
+      Object.assign(db.slotsMap, newMonthSlots);
+      await writeDb(db);
+    }
+  }
+
   return NextResponse.json({
     success: true,
     slots: db.slotsMap,

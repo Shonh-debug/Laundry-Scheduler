@@ -3,5 +3,6 @@
   "/api/auth/me/route": "app/api/auth/me/route.js",
   "/api/schedule/route": "app/api/schedule/route.js",
   "/api/stream/route": "app/api/stream/route.js",
-  "/api/auth/logout/route": "app/api/auth/logout/route.js"
+  "/icon.svg/route": "app/icon.svg/route.js",
+  "/api/auth/route": "app/api/auth/route.js"
 }
